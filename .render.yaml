@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: fuelpass-server
+    runtime: python3.13
+    buildCommand: pip install -r requirements.txt
+    startCommand: python app.py
+    envVars:
+      - key: PORT
+        value: 8000
+    disk: 1024
