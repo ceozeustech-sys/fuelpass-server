@@ -4,157 +4,43 @@
   <meta charset="utf-8"/>
   <title>FuelPass Estimator</title>
   <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;max-width:980px;margin:28px auto;padding:0 16px;color:#111}
-    h2{margin-bottom:6px}
-    label{display:block;margin:8px 0;font-size:14px}
-    input, select{padding:8px;border:1px solid #ddd;border-radius:6px;width:240px}
-    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
-    button{background:#0b74de;color:#fff;border:0;padding:10px 16px;border-radius:8px;cursor:pointer}
-    pre#out{background:#111;color:#0f0;padding:12px;border-radius:8px;white-space:pre-wrap}
-    .result{margin-top:18px;padding:14px;border:1px solid #eee;border-radius:8px;background:#fafafa}
-    .result h3{margin:0 0 8px 0}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .small{font-size:13px;color:#555}
-    .muted{color:#666;font-size:13px}
+    body{font-family:sans-serif;max-width:800px;margin:40px auto;padding:0 20px}
+    h1{color:#0b74de;text-align:center}
+    label{display:block;margin:12px 0}
+    input, select{padding:8px;width:200px;margin-top:4px}
+    button{background:#0b74de;color:white;border:0;padding:10px 20px;margin-top:20px}
+    #result{margin-top:30px;padding:15px;background:#f0f8ff;border-radius:8px}
   </style>
 </head>
 <body>
-  <h2>FuelPass Estimator (Demo)</h2>
-
-  <div class="row">
-    <label style="width:100%;">Make: <input id="make" placeholder="e.g. Toyota"/></label>
-  </div>
-
-  <div class="row">
-    <label>Year: <input id="year" type="number" placeholder="2015" /></label>
-    <label>Engine (L): <input id="engine" type="number" step="0.1" placeholder="1.6"/></label>
-    <label>Distance (km): <input id="distance" type="number" value="100"/></label>
-  </div>
-
-  <div class="row">
-    <label>Body type:
-      <select id="body">
-        <option>sedan</option><option>suv</option><option>van</option><option>truck</option>
-      </select>
-    </label>
-
-    <label>Route:
-      <select id="route">
-        <option>mixed</option><option>highway</option><option>city</option>
-      </select>
-    </label>
-
-    <label>Driving:
-      <select id="drive">
-        <option>normal</option><option>aggressive</option><option>eco</option>
-      </select>
-    </label>
-  </div>
-
-  <div class="row">
-    <label>Fuel price per litre (ZAR): <input id="price" type="number" step="0.01" value="26.50" style="width:160px"/></label>
-    <button onclick="callEstimate()">Estimate</button>
-  </div>
-
-  <div id="loading" class="muted" style="display:none">Calculating…</div>
-
-  <div id="resultArea" class="result" style="display:none">
-    <h3>Trip Estimate</h3>
-    <div class="grid">
-      <div>
-        <div><strong>L/100km (estimated):</strong> <span id="l100">—</span></div>
-        <div class="small">How many litres your car uses per 100 km (approx).</div>
-      </div>
-      <div>
-        <div><strong>Distance:</strong> <span id="dist">—</span> km</div>
-        <div class="small">Distance you entered</div>
-      </div>
-
-      <div>
-        <div><strong>Best estimate (litres):</strong> <span id="best">—</span></div>
-        <div class="small">Most likely fuel needed</div>
-      </div>
-      <div>
-        <div><strong>Cost @ price:</strong> <span id="best_cost">—</span></div>
-        <div class="small">Best liters × price per litre</div>
-      </div>
-
-      <div>
-        <div><strong>Minimum (litres):</strong> <span id="min">—</span></div>
-        <div class="small">Lower bound (approx)</div>
-      </div>
-      <div>
-        <div><strong>Min cost:</strong> <span id="min_cost">—</span></div>
-        <div class="small">Min liters × price</div>
-      </div>
-
-      <div>
-        <div><strong>Maximum (litres):</strong> <span id="max">—</span></div>
-        <div class="small">Upper bound (approx)</div>
-      </div>
-      <div>
-        <div><strong>Max cost:</strong> <span id="max_cost">—</span></div>
-        <div class="small">Max liters × price</div>
-      </div>
-    </div>
-
-    <div style="margin-top:12px" id="notes" class="muted"></div>
-    <div style="margin-top:8px"><button onclick="resetForm()">New estimate</button></div>
-  </div>
-
-  <pre id="out" style="display:none"></pre>
+  <h1>FuelPass Estimator</h1>
+  <label>Distance (km): <input id="distance" type="number" value="100"></label>
+  <label>Fuel Price (ZAR/L): <input id="price" type="number" step="0.01" value="26.50"></label>
+  <button onclick="estimate()">Estimate</button>
+  <div id="result"></div>
 
 <script>
-async function callEstimate(){
-  document.getElementById('resultArea').style.display = 'none';
-  document.getElementById('out').style.display = 'none';
-  document.getElementById('loading').style.display = 'block';
-
-  const payload = {
-    make: document.getElementById('make').value || null,
-    year: parseInt(document.getElementById('year').value) || null,
-    engine_l: parseFloat(document.getElementById('engine').value) || null,
-    distance_km: parseFloat(document.getElementById('distance').value) || 0,
-    body_type: document.getElementById('body').value,
-    route: document.getElementById('route').value,
-    driving_style: document.getElementById('drive').value
-  };
+async function estimate(){
+  const dist = parseFloat(document.getElementById('distance').value);
+  const price = parseFloat(document.getElementById('price').value);
   const res = await fetch('/estimate', {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
-    body: JSON.stringify(payload)
+    body: JSON.stringify({
+      distance_km: dist,
+      fuel_price: price,
+      body_type: "sedan",
+      route: "mixed",
+      driving_style: "normal"
+    })
   });
   const data = await res.json();
-  document.getElementById('l100').textContent = data.l_per_100km;
-  document.getElementById('dist').textContent = payload.distance_km;
-  document.getElementById('best').textContent = data.best_liters;
-  document.getElementById('min').textContent = data.min_liters;
-  document.getElementById('max').textContent = data.max_liters;
-  document.getElementById('best_cost').textContent = data.best_liters * (payload.fuel_price || 0);
-  document.getElementById('min_cost').textContent = data.min_liters * (payload.fuel_price || 0);
-  document.getElementById('max_cost').textContent = data.max_liters * (payload.fuel_price || 0);
-  document.getElementById('notes').textContent = data.notes || '';
-
-  document.getElementById('resultArea').style.display = 'block';
-
-  // show raw JSON if user wants to debug
-  document.getElementById('out').textContent = JSON.stringify(data, null, 2);
-  document.getElementById('out').style.display = 'none';
-
-} catch(err){
-  document.getElementById('out').textContent = 'Error: ' + err.message;
-  document.getElementById('out').style.display = 'block';
-  console.error(err);
-} finally {
-  document.getElementById('loading').style.display = 'none';
-}
-
-function resetForm(){
-  document.getElementById('make').value = '';
-  document.getElementById('year').value = '';
-  document.getElementById('engine').value = '';
-  document.getElementById('distance').value = '100';
-  document.getElementById('price').value = '0.00';
+  document.getElementById('result').innerHTML = `
+    <h3>Estimate</h3>
+    <p><strong>Deposit:</strong> R${data.estimated_cost_zar}</p>
+    <p><strong>Fuel needed:</strong> ${data.best_liters} L</p>
+    <p>${data.notes}</p>
+  `;
 }
 </script>
 </body>
