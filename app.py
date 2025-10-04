@@ -55,7 +55,7 @@ class EstimateResponse(BaseModel):
 
 @app.post("/estimate", response_model=EstimateResponse)
 @limiter.limit("100/minute")
-def estimate(req: EstimateRequest, api_key: str = Security(verify_api_key)):
+def estimate(request: Request, req: EstimateRequest, api_key: str = Security(verify_api_key)):
     logging.info(f"Estimate request: {req.distance_km} km, body={req.body_type}, engine={req.engine_l}")
     
     # Simple heuristic demo calculation
