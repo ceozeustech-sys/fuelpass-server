@@ -1,282 +1,120 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8"/>
+  <meta charset="UTF-8">
   <title>FuelPass Estimator</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      max-width: 960px;
-      margin: 0 auto;
-      padding: 24px 16px;
-      color: #111;
-      background-color: #fafafa;
-    }
-    .container {
-      background: white;
-      padding: 32px;
-      border-radius: 16px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-    }
-    header {
-      text-align: center;
-      margin-bottom: 28px;
-    }
-    .logo {
-      max-width: 300px;
-      height: auto;
-      margin: 0 auto 16px;
-      display: block;
-    }
-    header h1 {
-      font-size: 28px;
-      font-weight: 700;
-      color: #0b74de;
-      margin: 0 0 8px 0;
-    }
-    .row {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-      margin-bottom: 16px;
-      align-items: center;
-    }
-    label {
-      display: flex;
-      flex-direction: column;
-      font-size: 14px;
-      font-weight: 500;
-      color: #222;
-      margin: 0;
-    }
-    input, select {
-      padding: 10px 12px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      width: 220px;
-      font-size: 15px;
-      margin-top: 6px;
-    }
-    button {
-      background: #0b74de;
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 10px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    button:hover {
-      background: #0a66c2;
-    }
-    .result {
-      background: #f8fbff;
-      border: 1px solid #d0e4f7;
-      border-radius: 12px;
-      padding: 24px;
-      margin-top: 28px;
-      display: none;
-    }
-    .result h3 {
-      font-size: 20px;
-      color: #0b74de;
-      margin: 0 0 20px 0;
-      text-align: center;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-    }
-    .metric {
-      text-align: center;
-      padding: 12px;
-    }
-    .metric strong {
-      display: block;
-      font-size: 18px;
-      color: #0b74de;
-      margin-bottom: 4px;
-    }
-    .metric span {
-      font-size: 14px;
-      color: #555;
-    }
-    #loading {
-      display: none;
-      text-align: center;
-      padding: 24px;
-    }
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid #e0e0e0;
-      border-top: 4px solid #0b74de;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin: 0 auto;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    footer {
-      margin-top: 32px;
-      text-align: center;
-      font-size: 13px;
-      color: #777;
-    }
-    .highlight {
-      background-color: #fff8e1;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-weight: 600;
-    }
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: 20px 
+auto; }
+    .grid { display: grid; gap: 10px; }
+    .metric { display: flex; justify-content: space-between; }
+    button { margin-top: 20px; padding: 10px; background: #007BFF; color: 
+white; border: none; cursor: pointer; }
+    #resultArea { display: none; margin-top: 20px; padding: 15px; 
+background: #f0f0f0; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <img src="https://via.placeholder.com/300x150?text=ZEUSTECH+Logo" alt="ZEUSTECH" class="logo">
-      <h1>FuelPass Estimator</h1>
-      <p>Estimate your fuel cost in South African Rands (ZAR)</p>
-    </header>
+  <h2>Estimate your fuel cost in South African Rands (ZAR)</h2>
 
-    <div class="row">
-      <label>Make: <input id="make" placeholder="e.g. Toyota"/></label>
-    </div>
-
-    <div class="row">
-      <label>Year: <input id="year" type="number" placeholder="2015"/></label>
-      <label>Engine (L): <input id="engine" type="number" step="0.1" placeholder="1.6"/></label>
-      <label>Distance (km): <input id="distance" type="number" value="100"/></label>
-    </div>
-
-    <div class="row">
-      <label>Body type:
-        <select id="body">
-          <option>sedan</option><option>suv</option><option>van</option><option>truck</option>
-        </select>
-      </label>
-      <label>Route:
-        <select id="route">
-          <option>mixed</option><option>highway</option><option>city</option>
-        </select>
-      </label>
-      <label>Driving:
-        <select id="drive">
-          <option>normal</option><option>aggressive</option><option>eco</option>
-        </select>
-      </label>
-    </div>
-
-    <div class="row">
-      <label>Fuel price per litre (ZAR): <input id="price" type="number" step="0.01" value="26.50"/></label>
-      <button onclick="callEstimate()">Estimate</button>
-    </div>
-
-    <div id="loading">
-      <div class="spinner"></div>
-      <p style="margin-top:12px; color:#666;">Calculating your estimate…</p>
-    </div>
-
-    <div id="resultArea" class="result"></div>
-
-    <footer>
-      © 2025 ZEUSTECH. For licensing, contact <span class="highlight">licensing@fuelpass.co.za</span>
-    </footer>
+  <div class="grid">
+    <label>Make: <input id="make" type="text"></label>
+    <label>Year: <input id="year" type="number"></label>
+    <label>Engine (L): <input id="engine" type="number" 
+step="0.1"></label>
+    <label>Distance (km): <input id="distance" type="number"></label>
+    <label>Fuel price per litre (ZAR): <input id="price" type="number" 
+step="0.01" value="25.0"></label>
+    <label>Body type: 
+      <select id="body">
+        <option value="sedan">sedan</option>
+        <option value="suv">suv</option>
+        <option value="van">van</option>
+        <option value="truck">truck</option>
+      </select>
+    </label>
+    <label>Route: 
+      <select id="route">
+        <option value="mixed">mixed</option>
+        <option value="highway">highway</option>
+        <option value="city">city</option>
+      </select>
+    </label>
+    <label>Driving: 
+      <select id="drive">
+        <option value="normal">normal</option>
+        <option value="aggressive">aggressive</option>
+        <option value="eco">eco</option>
+      </select>
+    </label>
   </div>
 
-<script>
-async function callEstimate(){
-  document.getElementById('resultArea').style.display = 'none';
-  document.getElementById('loading').style.display = 'block';
+  <button onclick="callEstimate()">Estimate</button>
 
-  const payload = {
-    make: document.getElementById('make').value || null,
-    year: parseInt(document.getElementById('year').value) || null,
-    engine_l: parseFloat(document.getElementById('engine').value) || null,
-    distance_km: parseFloat(document.getElementById('distance').value) || 0,
-    fuel_price: parseFloat(document.getElementById('price').value) || 0.0,
-    body_type: document.getElementById('body').value,
-    route: document.getElementById('route').value,
-    driving_style: document.getElementById('drive').value
-  };
+  <div id="resultArea">
+    <h3>Your Estimate</h3>
+    <div class="metric"><strong>Estimated Cost:</strong> <span 
+id="cost">R0.00</span></div>
+    <div class="metric"><strong>L/100km:</strong> <span 
+id="l_per_100km">0.0</span> L/100km</div>
+    <div class="metric"><strong>Distance:</strong> <span 
+id="distance_km">0</span> km</div>
+    <div class="metric"><strong>Fuel Needed:</strong> <span 
+id="liters_needed">0.0</span> L</div>
+  </div>
 
-  try {
-    const res = await fetch('/estimate', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify(payload)
-    });
-    const data = await res.json();
+  <script>
+    async function callEstimate() {
+      const payload = {
+        make: document.getElementById('make').value || null,
+        year: parseInt(document.getElementById('year').value) || null,
+        engine_l: parseFloat(document.getElementById('engine').value) || 
+null,
+        distance_km: parseFloat(document.getElementById('distance').value) 
+|| 0,
+        fuel_price: parseFloat(document.getElementById('price').value) || 
+25.0,
+        body_type: document.getElementById('body').value,
+        route: document.getElementById('route').value,
+        driving_style: document.getElementById('drive').value
+      };
 
-    const price = parseFloat(document.getElementById('price').value) || 0.0;
-    const dist = payload.distance_km;
-    const best = Number(data.best_liters);
-    const min = Number(data.min_liters);
-    const max = Number(data.max_liters);
-    const l100 = Number(data.l_per_100km);
-    const bestCost = best * price;
-    const minCost = min * price;
-    const maxCost = max * price;
+      try {
+        const response = await fetch('/estimate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-API-Key': 'fp_live_zeustech_fuelpass_2025'
+          },
+          body: JSON.stringify(payload)
+        });
 
-    function fmt(x){ return (Math.round(x*100)/100).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+        const data = await response.json();
 
-    document.getElementById('resultArea').innerHTML = `
-      <h3>Your FuelPass Estimate</h3>
-      <div class="grid">
-        <div class="metric">
-          <strong>${l100} L/100km</strong>
-          <span>Consumption</span>
-        </div>
-        <div class="metric">
-          <strong>${dist} km</strong>
-          <span>Distance</span>
-        </div>
-        <div class="metric">
-          <strong>R${price > 0 ? fmt(bestCost) : '–'}</strong>
-          <span>Estimated Cost</span>
-        </div>
-        <div class="metric">
-          <strong>${best} L</strong>
-          <span>Best Estimate</span>
-        </div>
-        <div class="metric">
-          <strong>R${price > 0 ? fmt(minCost) : '–'}</strong>
-          <span>Min Cost</span>
-        </div>
-        <div class="metric">
-          <strong>R${price > 0 ? fmt(maxCost) : '–'}</strong>
-          <span>Max Cost</span>
-        </div>
-      </div>
-      <div style="margin-top:20px; font-size:14px; color:#555; text-align:center;">
-        ${data.notes || ''}
-      </div>
-      <div style="text-align:center; margin-top:20px;">
-        <button onclick="resetForm()" style="padding:8px 16px; font-size:14px;">New Estimate</button>
-      </div>
-    `;
-    document.getElementById('resultArea').style.display = 'block';
+        if (data.error) {
+          alert('Error: ' + data.error);
+          return;
+        }
 
-  } catch(err){
-    document.getElementById('loading').style.display = 'none';
-    alert('Error: ' + (err.message || 'Failed to estimate'));
-  }
-}
+        document.getElementById('cost').textContent = 
+`R${data.bestCost.toFixed(2)}`;
+        document.getElementById('l_per_100km').textContent = 
+data.l_per_100km.toFixed(2);
+        document.getElementById('distance_km').textContent = 
+data.distance_km;
+        document.getElementById('liters_needed').textContent = 
+data.best_liters.toFixed(2);
 
-function resetForm(){
-  document.getElementById('make').value = '';
-  document.getElementById('year').value = '';
-  document.getElementById('engine').value = '';
-  document.getElementById('distance').value = '100';
-  document.getElementById('price').value = '26.50';
-  document.getElementById('resultArea').style.display = 'none';
-}
-</script>
+        document.getElementById('resultArea').style.display = 'block';
+
+      } catch (err) {
+        alert('Error: ' + (err.message || 'Failed'));
+      }
+    }
+  </script>
+
+  <footer>
+    © 2025 ZEUSTECH. For licensing, contact licensing@fuelpass.co.za
+  </footer>
 </body>
 </html>
